@@ -1,5 +1,5 @@
 <!-- login.component.html -->
-<div class="min-h-screen flex items-center justify-center relative overflow-hidden" style="background-image: url('/images/Fondo_Epd_Alumnos.png'); background-size: cover; background-position: center;">
+<div class="min-h-screen flex items-center justify-center relative overflow-hidden" style="background-image: url('/images/Fondo_Epd_Alumnos.avif'); background-size: cover; background-position: center;">
   <!-- Tarjeta de login con glassmorphism refinado -->
   <div class="bg-blue-900/25 backdrop-blur-md rounded-3xl p-8 w-full max-w-md shadow-2xl relative z-10 border border-blue-400/10">
     <!-- Logo -->
@@ -7,42 +7,91 @@
       <img src="/images/Logo-EPD.avif" alt="Escuela profesional de dibujo" class="h-24">
     </div>
     
-    <h2 class="text-white text-2xl font-semibold text-center mb-6">Login</h2>
+    <h2 class="text-white text-2xl font-semibold text-center mb-6">Iniciar Sesión</h2>
+    
+    <!-- Mensaje de error -->
+    <div *ngIf="errorMessage" class="bg-red-500/80 backdrop-blur-sm text-white p-3 rounded-lg mb-4 text-sm border border-red-400/30 animate-pulse">
+      <div class="flex items-center">
+        <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        {{ errorMessage }}
+      </div>
+    </div>
+    
+    <!-- Mensaje de éxito (opcional) -->
+    <div *ngIf="successMessage" class="bg-green-500/80 backdrop-blur-sm text-white p-3 rounded-lg mb-4 text-sm border border-green-400/30">
+      <div class="flex items-center">
+        <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        {{ successMessage }}
+      </div>
+    </div>
     
     <!-- Formulario -->
-    <form class="space-y-4">
-      <!-- Campo Referencia -->
+    <form class="space-y-4" (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <!-- Campo Referencia Escolar -->
       <div>
-        <label for="referencia" class="text-white text-sm block mb-2">Referencia</label>
-        <input 
-          type="text" 
-          id="referencia" 
-          pattern="[0-9]{6}"
-          maxlength="6"
-          placeholder="123456" 
-          [(ngModel)]="referencia"
-          name="referencia"
-          class="w-full px-4 py-2.5 rounded-lg bg-white/75 border-0 focus:ring-2 focus:ring-blue-400"
-        >
+        <label for="refEsc" class="text-white text-sm block mb-2">
+          Referencia Escolar
+          <span class="text-red-300">*</span>
+        </label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="refEsc" 
+            pattern="[0-9]*"
+            maxlength="8"
+            placeholder="Ej: 12345678" 
+            [(ngModel)]="refEsc"
+            name="refEsc"
+            autocomplete="username"
+            required
+            (input)="clearError()"
+            class="w-full px-4 py-2.5 rounded-lg bg-white/75 border-0 focus:ring-2 focus:ring-blue-400 transition-all"
+            [class.ring-2]="refEsc && !isValidRefEsc()"
+            [class.ring-red-400]="refEsc && !isValidRefEsc()"
+          >
+          <!-- Icono de validación -->
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <svg *ngIf="refEsc && isValidRefEsc()" class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <svg *ngIf="refEsc && !isValidRefEsc()" class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+        <p *ngIf="refEsc && !isValidRefEsc()" class="text-red-300 text-xs mt-1">
+          Solo se permiten números
+        </p>
       </div>
       
       <!-- Campo Contraseña -->
       <div>
-        <label for="password" class="text-white text-sm block mb-2">Contraseña</label>
+        <label for="password" class="text-white text-sm block mb-2">
+          Contraseña
+          <span class="text-red-300">*</span>
+        </label>
         <div class="relative">
           <input 
             [type]="showPassword ? 'text' : 'password'" 
             id="password" 
-            placeholder="••••••" 
+            placeholder="Referencia + Apellido Paterno" 
             [(ngModel)]="password"
             name="password"
-            class="w-full px-4 py-2.5 rounded-lg bg-white/75 border-0 focus:ring-2 focus:ring-blue-400"
+            autocomplete="current-password"
+            required
+            (input)="clearError()"
+            class="w-full px-4 py-2.5 pr-12 rounded-lg bg-white/75 border-0 focus:ring-2 focus:ring-blue-400 transition-all"
           >
           <!-- Botón para ver/ocultar contraseña -->
           <button 
             type="button" 
             (click)="togglePasswordVisibility()"
             class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-600 hover:text-slate-800 transition-colors focus:outline-none"
+            title="{{ showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña' }}"
           >
             <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -54,38 +103,111 @@
             </svg>
           </button>
         </div>
-        <div class="text-right mt-4">
-          <a href="#" class="text-white/80 text-sm hover:text-white">¿Olvidaste tu contraseña?</a>
+
+        <!-- Botón de ayuda para contraseña -->
+        <div class="flex justify-between items-center mt-2">
+          <button 
+            type="button"
+            (click)="showPasswordHint()"
+            class="text-blue-200 text-xs hover:text-white transition-colors underline"
+          >
+            ¿Cómo se forma mi contraseña?
+          </button>
+          <a href="#" class="text-white/80 text-xs hover:text-white transition-colors">
+            ¿Olvidaste tu contraseña?
+          </a>
         </div>
       </div>
       
       <!-- Selector de Plantel -->
       <div>
-        <label for="plantel" class="text-white text-sm block mb-2">Selecciona tu plantel</label>
-        <select 
-          id="plantel"
-          [(ngModel)]="plantel"
-          name="plantel"
-          class="w-full px-4 py-2.5 rounded-lg bg-white/75 border-0 focus:ring-2 focus:ring-blue-400 appearance-none"
-        >
-          <option value="" disabled selected>Selecciona tu plantel</option>
-          <option value="centro">Centro</option>
-          <option value="ecatepec">Ecatepec</option>
-          <option value="huipulco">Huipulco</option>
-          <option value="izcalli">Izcalli</option>
-        </select>
+        <label for="plantel" class="text-white text-sm block mb-2">
+          Selecciona tu plantel
+          <span class="text-red-300">*</span>
+        </label>
+        <div class="relative">
+          <select 
+            id="plantel"
+            [(ngModel)]="plantel"
+            name="plantel"
+            autocomplete="organization"
+            required
+            (change)="clearError()"
+            class="w-full px-4 py-2.5 rounded-lg bg-white/75 border-0 focus:ring-2 focus:ring-blue-400 appearance-none transition-all cursor-pointer"
+          >
+            <option value="" disabled selected>Selecciona tu plantel</option>
+            <option 
+              *ngFor="let p of planteles" 
+              [value]="p.value"
+            >
+              {{ p.label }}
+            </option>
+          </select>
+          <!-- Icono de dropdown -->
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+        <p *ngIf="plantel" class="text-blue-200 text-xs mt-1">
+          Plantel seleccionado: {{ getPlantelName(plantel) }}
+        </p>
       </div>
       
       <!-- Botón de inicio de sesión -->
       <div class="pt-4">
         <button 
           type="submit" 
-          (click)="onSubmit()"
-          class="w-full bg-blue-900 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors"
+          class="w-full bg-blue-900 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-all flex items-center justify-center transform hover:scale-[1.02] active:scale-[0.98]"
+          [disabled]="isLoading || !loginForm.valid"
         >
-          Ingresar
+          <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <svg *ngIf="!isLoading" class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+          {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
         </button>
       </div>
+
+      <!-- Estado del formulario (solo en modo desarrollo) -->
+      <div *ngIf="showDebugInfo" class="mt-4 p-3 bg-white/10 rounded-lg text-xs text-white/70">
+        <p><strong>Debug Info:</strong></p>
+        <p>RefEsc: {{ refEsc || 'vacío' }}</p>
+        <p>Password: {{ password ? '***' : 'vacío' }}</p>
+        <p>Plantel: {{ plantel || 'no seleccionado' }}</p>
+        <p>Formulario válido: {{ loginForm.valid ? 'Sí' : 'No' }}</p>
+      </div>
     </form>
+
+    <!-- Footer -->
+    <div class="mt-6 text-center">
+      <p class="text-white/60 text-xs">
+        EPD Sistema v2.0 | 
+        <button 
+          type="button" 
+          (click)="showDebugInfo = !showDebugInfo"
+          class="hover:text-white transition-colors"
+        >
+          Debug
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <!-- Overlay de carga -->
+  <div *ngIf="isLoading" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-2xl">
+      <div class="flex items-center space-x-3">
+        <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-gray-700 font-medium">Verificando credenciales...</span>
+      </div>
+    </div>
   </div>
 </div>
